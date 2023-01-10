@@ -64,7 +64,6 @@ server.post('/v1',
     async (req, res) => {
         if (!req.headers["user-agent"]?.match(/ProNouns\/.+/)) return res.status(400).send();
         const body = req.body as ServerInfo
-        body.id = (Math.random() + 1).toString(36).substring(2);
         try {
             await write(body)
             res.status(204).send()
