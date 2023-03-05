@@ -72,6 +72,6 @@ server.post('/v1',
         }
     })
 
-await server.listen({ port: PORT })
+await server.listen({ port: PORT, host: '0.0.0.0' })
 console.log(`Listening on port ${PORT}`)
 
