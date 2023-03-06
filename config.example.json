@@ -1,0 +1,13 @@
+[{
+  "name": "ProNouns",
+  "influx": {
+    "org": "lucypoulton",
+    "bucket": "pronouns"
+  },
+  "fields": {
+    "platform": {"type": "string"},
+    "store": {"type": "string"},
+    "pluginVersion": {"type": "string"},
+    "minecraftVersion": {"type": "string"}
+  }
+}]
