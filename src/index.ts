@@ -15,7 +15,16 @@ function notNull<T>(name: string, value: T | null | undefined) {
 const PORT = parseInt(notNull('Port', process.env['PORT']))
 const URL = notNull('InfluxDB URL', process.env['INFLUX_URL'])
 const TOKEN = notNull('InfluxDB Token', process.env['INFLUX_TOKEN'])
-const influx = new InfluxDB({url: URL, token: TOKEN})
+
+const version = JSON.parse(await fs.readFile('package.json', 'utf-8')).version
+
+const influx = new InfluxDB({
+    url: URL, token: TOKEN,
+    headers: {
+        'User-Agent': `plugin-stats/${version}`
+    }
+});
+
 
 const server = fastify()
 
@@ -36,7 +45,7 @@ async function handle(userAgent: string | undefined, body: any): Promise<{ code:
     if (project == null) return {code: 400, error: 'Invalid user agent'}
     if (typeof body !== 'object' || body == null) return {code: 422, error: 'Invalid body'}
 
-    const point = new Point()
+    const point = new Point("servers")
     for (const [name, field] of Object.entries(project.fields)) {
         const value = body[name]
         if (value == null) {
