@@ -75,7 +75,7 @@ async function handle(userAgent: string | undefined, ip: string | undefined, bod
 
     if (ip && project.collectLocation) {
         const location = await getLocation(ip)
-        if (location != null) point.stringField('location', location)
+        if (location != null) point.tag('location', location)
     }
 
     const writeApi = influx.getWriteApi(project.influx.org, project.influx.bucket, 'ns')
