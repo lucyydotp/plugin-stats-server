@@ -9,6 +9,7 @@ export default interface Project {
     influx: {
         org: string,
         bucket: string
-    }
+    },
+    collectLocation?: boolean
 }
 

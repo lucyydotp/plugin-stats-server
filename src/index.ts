@@ -39,7 +39,14 @@ server.register(rateLimit, {
 
 server.get('/', (req, res) => res.status(204).send())
 
-async function handle(userAgent: string | undefined, body: any): Promise<{ code: number } & ({ error: string } | { point: Point })> {
+async function getLocation(ip: string) {
+    const req = await fetch(`https://ip2c.org/?ip=${ip}`);
+    if (!req.ok) return null
+    const text = (await req.text()).split(';')
+    return text[0] !== '1' ? null : text[1]
+}
+
+async function handle(userAgent: string | undefined, ip: string | undefined, body: any): Promise<{ code: number } & ({ error: string } | { point: Point })> {
     if (userAgent == null) return {code: 400, error: 'Missing user agent'}
     const project = config.find(p => userAgent.toLowerCase().startsWith(`${p.name.toLowerCase()}/`))
     if (project == null) return {code: 400, error: 'Invalid user agent'}
@@ -66,6 +73,11 @@ async function handle(userAgent: string | undefined, body: any): Promise<{ code:
     if (body.id == null) return {code: 422, error: 'Missing required field id'}
     point.stringField('id', body.id)
 
+    if (ip && project.collectLocation) {
+        const location = await getLocation(ip)
+        if (location != null) point.stringField('location', location)
+    }
+
     const writeApi = influx.getWriteApi(project.influx.org, project.influx.bucket, 'ns')
     writeApi.writePoint(point)
     await writeApi.flush()
@@ -74,7 +86,9 @@ async function handle(userAgent: string | undefined, body: any): Promise<{ code:
 
 server.post('/v1', async (req, res) => {
     try {
-        const result = await handle(req.headers["user-agent"], req.body)
+        const result = await handle(req.headers["user-agent"],
+            req.headers['x-real-ip'] as string ?? req.ip,
+            req.body)
         res.status(result.code)
         if ('error' in result) return res.send(result);
 
